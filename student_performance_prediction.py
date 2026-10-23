@@ -1,3 +1,35 @@
+# Student Performance Prediction
+# Dataset: Student Performance Factors (Kaggle)
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Read dataset
+df = pd.read_csv('StudentPerformanceFactors.csv')
+
+print(df.head())
+print(df.info())
+print(df.describe())
+print('\nMissing values:')
+print(df.isnull().sum())
+print('\nDuplicate rows:', df.duplicated().sum())
+
+# Remove duplicate rows
+df = df.drop_duplicates()
+
+# Fill missing values
+for column in df.columns:
+    if df[column].dtype == 'object':
         df[column] = df[column].fillna(df[column].mode()[0])
     else:
         df[column] = df[column].fillna(df[column].median())
@@ -158,3 +190,15 @@ elif best_accuracy == accuracy2:
 elif best_accuracy == accuracy3:
     best_name = "Gaussian Naive Bayes"
     best_predictions = y_pred3
+else:
+    best_name = "Random Forest"
+    best_predictions = y_pred4
+
+print("\\nBest model:", best_name)
+print("\\nClassification Report:")
+print(classification_report(y_test, best_predictions, zero_division=0))
+
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, best_predictions))
+
+print("\\nModel comparison is complete.")
