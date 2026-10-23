@@ -1,35 +1,3 @@
-# Student Performance Prediction
-
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from sklearn.metrics import classification_report, confusion_matrix
-
-# Read dataset
-df = pd.read_csv('StudentPerformanceFactors.csv')
-
-print(df.head())
-print(df.info())
-print(df.describe())
-print('\nMissing values:')
-print(df.isnull().sum())
-print('\nDuplicate rows:', df.duplicated().sum())
-
-# Remove duplicate rows
-df = df.drop_duplicates()
-
-# Fill missing values
-for column in df.columns:
-    if df[column].dtype == 'object':
         df[column] = df[column].fillna(df[column].mode()[0])
     else:
         df[column] = df[column].fillna(df[column].median())
@@ -110,8 +78,12 @@ print(df['Performance_Level'].value_counts())
 X = df.drop(['Exam_Score', 'Performance_Level'], axis=1)
 y = df['Performance_Level']
 
-# Convert text columns into numbers
-X = pd.get_dummies(X, drop_first=True)
+# Convert text columns into numbers using Label Encoding
+le = LabelEncoder()
+
+for column in X.columns:
+    if X[column].dtype == 'object':
+        X[column] = le.fit_transform(X[column].astype(str))
 
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(
@@ -129,13 +101,9 @@ model1 = LogisticRegression(max_iter=1000)
 model1.fit(X_train, y_train)
 y_pred1 = model1.predict(X_test)
 accuracy1 = accuracy_score(y_test, y_pred1)
-precision1 = precision_score(y_test, y_pred1, average='macro', zero_division=0)
-recall1 = recall_score(y_test, y_pred1, average='macro', zero_division=0)
-f1_1 = f1_score(y_test, y_pred1, average='macro', zero_division=0)
 print("Accuracy:", round(accuracy1, 3))
-print("Precision:", round(precision1, 3))
-print("Recall:", round(recall1, 3))
-print("F1-score:", round(f1_1, 3))
+print("Classification Report:")
+print(classification_report(y_test, y_pred1, zero_division=0))
 
 
 # MODEL 2: K-Nearest Neighbors (KNN)
@@ -144,13 +112,9 @@ model2 = KNeighborsClassifier(n_neighbors=5)
 model2.fit(X_train, y_train)
 y_pred2 = model2.predict(X_test)
 accuracy2 = accuracy_score(y_test, y_pred2)
-precision2 = precision_score(y_test, y_pred2, average='macro', zero_division=0)
-recall2 = recall_score(y_test, y_pred2, average='macro', zero_division=0)
-f1_2 = f1_score(y_test, y_pred2, average='macro', zero_division=0)
 print("Accuracy:", round(accuracy2, 3))
-print("Precision:", round(precision2, 3))
-print("Recall:", round(recall2, 3))
-print("F1-score:", round(f1_2, 3))
+print("Classification Report:")
+print(classification_report(y_test, y_pred2, zero_division=0))
 
 
 # MODEL 3: Gaussian Naive Bayes
@@ -159,13 +123,9 @@ model3 = GaussianNB()
 model3.fit(X_train, y_train)
 y_pred3 = model3.predict(X_test)
 accuracy3 = accuracy_score(y_test, y_pred3)
-precision3 = precision_score(y_test, y_pred3, average='macro', zero_division=0)
-recall3 = recall_score(y_test, y_pred3, average='macro', zero_division=0)
-f1_3 = f1_score(y_test, y_pred3, average='macro', zero_division=0)
 print("Accuracy:", round(accuracy3, 3))
-print("Precision:", round(precision3, 3))
-print("Recall:", round(recall3, 3))
-print("F1-score:", round(f1_3, 3))
+print("Classification Report:")
+print(classification_report(y_test, y_pred3, zero_division=0))
 
 
 # MODEL 4: Random Forest
@@ -174,41 +134,27 @@ model4 = RandomForestClassifier(n_estimators=100, random_state=42)
 model4.fit(X_train, y_train)
 y_pred4 = model4.predict(X_test)
 accuracy4 = accuracy_score(y_test, y_pred4)
-precision4 = precision_score(y_test, y_pred4, average='macro', zero_division=0)
-recall4 = recall_score(y_test, y_pred4, average='macro', zero_division=0)
-f1_4 = f1_score(y_test, y_pred4, average='macro', zero_division=0)
 print("Accuracy:", round(accuracy4, 3))
-print("Precision:", round(precision4, 3))
-print("Recall:", round(recall4, 3))
-print("F1-score:", round(f1_4, 3))
+print("Classification Report:")
+print(classification_report(y_test, y_pred4, zero_division=0))
 
 
 # MODEL COMPARISON
-print("\nMODEL COMPARISON")
-print("Logistic Regression F1-score:", round(f1_1, 3))
-print("KNN F1-score:", round(f1_2, 3))
-print("Gaussian Naive Bayes F1-score:", round(f1_3, 3))
-print("Random Forest F1-score:", round(f1_4, 3))
+print("\\nMODEL COMPARISON")
+print("Logistic Regression Accuracy:", round(accuracy1, 3))
+print("KNN Accuracy:", round(accuracy2, 3))
+print("Gaussian Naive Bayes Accuracy:", round(accuracy3, 3))
+print("Random Forest Accuracy:", round(accuracy4, 3))
 
-# Select the best model using macro F1-score
-best_f1 = max(f1_1, f1_2, f1_3, f1_4)
+# Select the best model using accuracy
+best_accuracy = max(accuracy1, accuracy2, accuracy3, accuracy4)
 
-if best_f1 == f1_1:
+if best_accuracy == accuracy1:
     best_name = "Logistic Regression"
     best_predictions = y_pred1
-elif best_f1 == f1_2:
+elif best_accuracy == accuracy2:
     best_name = "K-Nearest Neighbors"
     best_predictions = y_pred2
-elif best_f1 == f1_3:
+elif best_accuracy == accuracy3:
     best_name = "Gaussian Naive Bayes"
     best_predictions = y_pred3
-else:
-    best_name = "Random Forest"
-    best_predictions = y_pred4
-
-print("\nBest model:", best_name)
-print("\nClassification Report:")
-print(classification_report(y_test, best_predictions, zero_division=0))
-print("Confusion Matrix:")
-print(confusion_matrix(y_test, best_predictions))
-print("\nModel comparison is complete.")
